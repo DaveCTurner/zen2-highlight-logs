@@ -10,10 +10,22 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
+- optparse-applicative
+- bytestring
+- conduit
+- resourcet
+- attoparsec
+- word8
+- text
+- ansi-terminal
+- unordered-containers
 
 executables:
   zen2-highlight-logs:
     main:                Main.hs
+    other-modules:
+    - FirstLine
+    - Parsers
     ghc-options:
     - -threaded
     - -rtsopts
