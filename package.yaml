@@ -1,0 +1,20 @@
+name:                zen2-highlight-logs
+version:             0.1.0.0
+github:              "githubuser/zen2-highlight-logs"
+license:             BSD3
+author:              "Author name here"
+maintainer:          "example@example.com"
+copyright:           "2018 Author name here"
+
+description:         Please see the README on GitHub at <https://github.com/githubuser/zen2-highlight-logs#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+executables:
+  zen2-highlight-logs:
+    main:                Main.hs
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
