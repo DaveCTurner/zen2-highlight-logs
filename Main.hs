@@ -18,18 +18,21 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import System.Console.ANSI
 import qualified Data.HashMap.Strict as HM
+import Control.Monad
 
 import FirstLine
 import Parsers
 import DiscoveryNode
 
 data CmdLineArgs = CmdLineArgs
-  { claLogFile :: FilePath
+  { claContinuationLines :: Bool
+  , claLogFile           :: FilePath
   } deriving (Show, Eq)
 
 cmdLineArgs :: Parser CmdLineArgs
 cmdLineArgs = CmdLineArgs
-  <$> (strArgument $ metavar "FILE")
+  <$> (switch $ long "continuation-lines" <> help "Also render continuation lines")
+  <*> (strArgument $ metavar "FILE" <> help "Test output log file")
 
 cmdLineArgsInfo :: ParserInfo CmdLineArgs
 cmdLineArgsInfo = info (cmdLineArgs <**> helper)
@@ -88,7 +91,7 @@ data DecoratedLines = DecoratedLines
 
 main :: IO ()
 main = do
-  CmdLineArgs{..} <- execParser cmdLineArgsInfo
+  clas@CmdLineArgs{..} <- execParser cmdLineArgsInfo
 
   runResourceT $ runConduit
     $  sourceFile claLogFile
@@ -97,13 +100,13 @@ main = do
     .| removeGradleIndent
     .| combineContinuationLines
     .| decorateLines
-    .| DCC.mapM_ (liftIO . displayLine)
+    .| DCC.mapM_ (liftIO . displayLine clas)
 
-displayLine :: DecoratedLines -> IO ()
-displayLine DecoratedLines{..} = do
+displayLine :: CmdLineArgs -> DecoratedLines -> IO ()
+displayLine CmdLineArgs{..} DecoratedLines{..} = do
   setSGR sgrs
   putStrLn $ printf "[%9dms][%-5s][%-40s] %s" dlMillis src (showBs $ flComponent $ clFirstLine dlLines) (showBs $ flMessage $ clFirstLine dlLines)
-  setSGR []
+  when claContinuationLines $ forM_ (clContinuationLines dlLines) $ \l -> setSGR sgrs >> putStrLn (showBs l)
   where
     sgrs = case dlSource of
       Unknown     -> [SetColor Foreground Dull Black, SetColor Background Dull Red]
