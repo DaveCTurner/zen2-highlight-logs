@@ -26,12 +26,18 @@ import DiscoveryNode
 
 data CmdLineArgs = CmdLineArgs
   { claContinuationLines :: Bool
+  , claLineNumbers       :: Bool
+  , claTimestamp         :: Bool
+  , claLogLevel          :: Bool
   , claLogFile           :: FilePath
   } deriving (Show, Eq)
 
 cmdLineArgs :: Parser CmdLineArgs
 cmdLineArgs = CmdLineArgs
   <$> (switch $ long "continuation-lines" <> help "Also render continuation lines")
+  <*> (switch $ long "line-numbers"       <> help "Include original line numbers")
+  <*> (switch $ long "original-timestamp" <> help "Include original timestamp")
+  <*> (switch $ long "log-level"          <> help "Include log level")
   <*> (strArgument $ metavar "FILE" <> help "Test output log file")
 
 cmdLineArgsInfo :: ParserInfo CmdLineArgs
@@ -105,7 +111,10 @@ main = do
 displayLine :: CmdLineArgs -> DecoratedLines -> IO ()
 displayLine CmdLineArgs{..} DecoratedLines{..} = do
   setSGR sgrs
-  putStrLn $ printf "[%9dms][%-5s][%-40s] %s" dlMillis src (showBs $ flComponent $ clFirstLine dlLines) (showBs $ flMessage $ clFirstLine dlLines)
+  let lineNumber = if claLineNumbers then printf "[%5d]"  (clStart dlLines) else "" :: String
+      timestamp  = if claTimestamp   then printf "[%s]"   (showBs $ flTimestamp $ clFirstLine dlLines) else "" :: String
+      logLevel   = if claLogLevel    then printf "[%-5s]" (showBs $ flLevel     $ clFirstLine dlLines) else "" :: String
+  putStrLn $ printf "%s%s[%9dms][%-5s]%s[%-40s] %s" lineNumber timestamp dlMillis src logLevel (showBs $ flComponent $ clFirstLine dlLines) (showBs $ flMessage $ clFirstLine dlLines)
   when claContinuationLines $ forM_ (clContinuationLines dlLines) $ \l -> setSGR sgrs >> putStrLn (showBs l)
   where
     sgrs = case dlSource of
