@@ -161,22 +161,8 @@ decorateLines = go Nothing 0 HM.empty nodeSGRs
              , "advanceTime"            `B.isPrefixOf` flMessage   clFirstLine = AdvanceTime
              | "DeterministicTaskQueue" `B.isSuffixOf` flComponent clFirstLine
              , "running task "          `B.isPrefixOf` flMessage   clFirstLine = runTask
-             | otherwise = sourceNode -- TODO validate nodeID of the line
+             | currentNode == flNodeId clFirstLine = sourceNode
+             | otherwise = Unknown
 
       in do yield DecoratedLines { dlMillis = newTime, dlSource = source, dlLines = cl }
             go newNode newTime sgrsByNode' sgrQueue'
-
-
-
-
-
-{-
-
-
-- timestamp (9ch)
-- nodeId
-- component
-- first line of message
-
-
--}
