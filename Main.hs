@@ -21,6 +21,7 @@ import qualified Data.HashMap.Strict as HM
 
 import FirstLine
 import Parsers
+import DiscoveryNode
 
 data CmdLineArgs = CmdLineArgs
   { claLogFile :: FilePath
@@ -142,10 +143,9 @@ decorateLines = go Nothing 0 HM.empty nodeSGRs
                    _              -> currentTime
 
       newNode = case ("DeterministicTaskQueue" `B.isSuffixOf` flComponent clFirstLine
-                     ,"running task "          `B.isPrefixOf` flMessage   clFirstLine
-                     , tryParseWrappedFor $ Prelude.last $ flMessage clFirstLine : clContinuationLines
+                     , tryParseRunningTaskNode $ flMessage clFirstLine
                      ) of
-                  (True, True, Just n) -> Just n
+                  (True, Just n) -> Just n
                   _ -> currentNode
 
       (runTask, sourceNode, sgrsByNode', sgrQueue') = case newNode of

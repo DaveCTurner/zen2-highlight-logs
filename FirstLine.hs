@@ -11,12 +11,14 @@ import Control.Monad
 import Data.Either
 import Control.Applicative
 
+import DiscoveryNode
+
 data FirstLine = FirstLine
   { flTimestamp :: B.ByteString
   , flLevel     :: B.ByteString
   , flComponent :: B.ByteString
   , flTest      :: B.ByteString
-  , flNodeId    :: Maybe B.ByteString
+  , flNodeId    :: Maybe DiscoveryNode
   , flMessage   :: B.ByteString
   } deriving (Show, Eq)
 
@@ -32,10 +34,10 @@ firstLine = do
   flMessage          <- AP.takeByteString
   return FirstLine{..}
 
-testAndMaybeNode :: AP.Parser (B.ByteString, Maybe B.ByteString)
+testAndMaybeNode :: AP.Parser (B.ByteString, Maybe DiscoveryNode)
 testAndMaybeNode = (,)
   <$> AP.takeWhile (not . (`elem` [_bracketright, _braceleft, _space]))
-  <*> optional (AP.string "{nodeId=" *> AP.takeWhile (/= _braceright) <* AP.word8 _braceright)
+  <*> optional (AP.string "{nodeId=" *> discoveryNode <* AP.word8 _braceright)
   <*  many (AP.word8 _space)
 
 bracketed :: AP.Parser a -> AP.Parser a

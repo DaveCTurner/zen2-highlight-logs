@@ -26,6 +26,7 @@ executables:
     other-modules:
     - FirstLine
     - Parsers
+    - DiscoveryNode
     ghc-options:
     - -threaded
     - -rtsopts
