@@ -1,12 +1,12 @@
 name:                zen2-highlight-logs
 version:             0.1.0.0
-github:              "githubuser/zen2-highlight-logs"
+github:              "davecturner/zen2-highlight-logs"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2018 Author name here"
+author:              "David Turner"
+maintainer:          "dave.c.turner@gmail.com"
+copyright:           "2018 David Turner"
 
-description:         Please see the README on GitHub at <https://github.com/githubuser/zen2-highlight-logs#readme>
+description:         Please see the README on GitHub at <https://github.com/davecturner/zen2-highlight-logs#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -19,15 +19,35 @@ dependencies:
 - text
 - ansi-terminal
 - unordered-containers
+- hashable
+- mtl
+
+ghc-options:
+- -Wall -Werror
+
+
+library:
+  source-dirs: src
 
 executables:
   zen2-highlight-logs:
     main:                Main.hs
-    other-modules:
-    - FirstLine
-    - Parsers
-    - DiscoveryNode
+    source-dirs:         app
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    dependencies:
+    - zen2-highlight-logs
+
+tests:
+  zen2-highlight-logs-tests:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - zen2-highlight-logs
+    - hspec

@@ -1,17 +1,15 @@
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TupleSections     #-}
 
 module FirstLine (tryParseFirstLine, FirstLine(..), unreadableFirstLine) where
 
-import qualified Data.ByteString as B
-import Data.Attoparsec.ByteString as AP
-import Data.Word8
-import Control.Monad
-import Data.Either
-import Control.Applicative
+import           Control.Applicative
+import           Data.Attoparsec.ByteString as AP
+import qualified Data.ByteString            as B
+import           Data.Word8
 
-import DiscoveryNode
+import           DiscoveryNode
 
 data FirstLine = FirstLine
   { flTimestamp :: B.ByteString

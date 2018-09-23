@@ -1,20 +1,18 @@
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TupleSections     #-}
 
 module Parsers (tryParseAdvanceTime, tryParseRunningTaskNode) where
 
-import qualified Data.ByteString as B
-import Data.Attoparsec.ByteString as AP
-import Data.Word8
-import Data.Word
-import Control.Monad
-import Data.Either
-import Control.Applicative
-import qualified Data.Text.Encoding as T
-import qualified Data.Text as T
+import           Control.Monad
+import           Data.Attoparsec.ByteString as AP
+import qualified Data.ByteString            as B
+import qualified Data.Text                  as T
+import qualified Data.Text.Encoding         as T
+import           Data.Word
+import           Data.Word8
 
-import DiscoveryNode
+import           DiscoveryNode
 
 skipString :: T.Text -> AP.Parser ()
 skipString = void . AP.string . T.encodeUtf8
