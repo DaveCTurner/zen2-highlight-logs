@@ -16,7 +16,7 @@ data FirstLine = FirstLine
   , flLevel     :: B.ByteString
   , flComponent :: B.ByteString
   , flTest      :: B.ByteString
-  , flNodeId    :: Maybe DiscoveryNode
+  , flNode      :: Maybe DiscoveryNode
   , flMessage   :: B.ByteString
   } deriving (Show, Eq)
 
@@ -25,11 +25,11 @@ tryParseFirstLine bs = either (const Nothing) Just $ parseOnly firstLine bs
 
 firstLine :: AP.Parser FirstLine
 firstLine = do
-  flTimestamp        <- bracketed timestamp
-  flLevel            <- bracketed level
-  flComponent        <- bracketed component        <* AP.word8 _space
-  (flTest, flNodeId) <- bracketed testAndMaybeNode <* AP.word8 _space
-  flMessage          <- AP.takeByteString
+  flTimestamp      <- bracketed timestamp
+  flLevel          <- bracketed level
+  flComponent      <- bracketed component        <* AP.word8 _space
+  (flTest, flNode) <- bracketed testAndMaybeNode <* AP.word8 _space
+  flMessage        <- AP.takeByteString
   return FirstLine{..}
 
 testAndMaybeNode :: AP.Parser (B.ByteString, Maybe DiscoveryNode)
@@ -50,6 +50,6 @@ unreadableFirstLine bs = FirstLine
   , flLevel     = unreadable
   , flComponent = unreadable
   , flTest      = unreadable
-  , flNodeId    = Nothing
+  , flNode      = Nothing
   , flMessage   = bs
   } where unreadable = B.pack [_question, _question]

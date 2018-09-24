@@ -13,6 +13,7 @@ import qualified Data.Text                    as T
 import qualified Data.Text.Encoding           as T
 import           System.Console.ANSI
 import           Text.Printf
+import qualified Data.HashSet as HS
 
 import           CmdLineArgs
 import           CombinedLines
@@ -35,7 +36,7 @@ main = do
     .| DCC.mapM_ (liftIO . displayLine cmdLineArgs)
 
 displayLine :: CmdLineArgs -> DecoratedLines -> IO ()
-displayLine CmdLineArgs{..} DecoratedLines{..} = do
+displayLine CmdLineArgs{..} DecoratedLines{..} = when nodeMatches $ do
   setSGR sgrs
   let lineNumber = if claLineNumbers then printf "[%5d]"  (clStart dlLines) else "" :: String
       timestamp  = if claTimestamp   then printf "[%s]"   (showBs $ flTimestamp $ clFirstLine dlLines) else "" :: String
@@ -44,6 +45,10 @@ displayLine CmdLineArgs{..} DecoratedLines{..} = do
   when claContinuationLines $ forM_ (clContinuationLines dlLines) $ \l -> setSGR sgrs >> putStrLn (showBs l)
   setSGR []
   where
+    nodeMatches = case (HS.null claOnlyNodes, nodeFromMessageSource dlSource) of
+      (False, Just n) -> dnName n `HS.member` claOnlyNodes
+      _ -> True
+
     sgrs = case dlSource of
       Unknown     -> [SetColor Foreground Dull Black, SetColor Background Dull Red]
       TestFixture -> [SetColor Foreground Vivid White, SetConsoleIntensity BoldIntensity]

@@ -9,6 +9,7 @@ import           Data.Either
 import           Data.Functor.Identity
 import           Data.Word8
 import           Test.Hspec
+import qualified Data.HashSet as HS
 
 import           CmdLineArgs
 import           CombinedLines
@@ -27,6 +28,7 @@ main = hspec $ do
           , claLineNumbers       = False
           , claTimestamp         = False
           , claLogLevel          = False
+          , claOnlyNodes         = HS.empty
           , claLogFile           = defaultFilename
           }
         parsesAs input expected = it ("parses " ++ show input) $ parseCmdLineArgs input `shouldBe` Just expected
@@ -34,12 +36,15 @@ main = hspec $ do
     it "requires a filename" $ parseCmdLineArgs [] `shouldBe` Nothing
     it "rejects multiple filenames" $ parseCmdLineArgs ["foo.txt", "bar.txt"] `shouldBe` Nothing
 
-    [defaultFilename]                         `parsesAs` defaultArgs
-    ["otherfile.log"]                         `parsesAs` defaultArgs { claLogFile = "otherfile.log" }
-    [defaultFilename, "--continuation-lines"] `parsesAs` defaultArgs { claContinuationLines = True }
-    [defaultFilename, "--line-numbers"]       `parsesAs` defaultArgs { claLineNumbers       = True }
-    [defaultFilename, "--original-timestamp"] `parsesAs` defaultArgs { claTimestamp         = True }
-    [defaultFilename, "--log-level"]          `parsesAs` defaultArgs { claLogLevel          = True }
+    [defaultFilename]                                `parsesAs` defaultArgs
+    ["otherfile.log"]                                `parsesAs` defaultArgs { claLogFile = "otherfile.log" }
+    [defaultFilename, "--continuation-lines"]        `parsesAs` defaultArgs { claContinuationLines = True }
+    [defaultFilename, "--line-numbers"]              `parsesAs` defaultArgs { claLineNumbers       = True }
+    [defaultFilename, "--original-timestamp"]        `parsesAs` defaultArgs { claTimestamp         = True }
+    [defaultFilename, "--log-level"]                 `parsesAs` defaultArgs { claLogLevel          = True }
+    [defaultFilename, "--only-nodes", "node1,node3"] `parsesAs` defaultArgs { claOnlyNodes         = HS.fromList ["node1", "node3"] }
+    [defaultFilename, "--only-nodes", "node1", "--only-nodes", "node3,node4"]
+                                                     `parsesAs` defaultArgs { claOnlyNodes         = HS.fromList ["node1", "node4", "node3"] }
 
   describe "DiscoveryNode" $ do
     it "parses {node1}{blahblahblah}" $
@@ -60,7 +65,7 @@ main = hspec $ do
           , flLevel = "TRACE"
           , flComponent = "o.e.c.c.DeterministicTaskQueue"
           , flTest = "testCanUpdateClusterStateAfterStabilisation"
-          , flNodeId = Nothing
+          , flNode = Nothing
           , flMessage = "running task 1 of 14: {node2}{LLo5XQAAQACCkGy3_____w}: UnicastConfiguredHostsResolver resolving unicast hosts list"
           }
 
@@ -71,7 +76,7 @@ main = hspec $ do
           , flLevel = "TRACE"
           , flComponent = "o.e.c.c.C.CoordinatorPeerFinder"
           , flTest = "testCanUpdateClusterStateAfterStabilisation"
-          , flNodeId = Just DiscoveryNode {dnName = "node2", dnUUID = "LLo5XQAAQACCkGy3_____w"}
+          , flNode = Just DiscoveryNode {dnName = "node2", dnUUID = "LLo5XQAAQACCkGy3_____w"}
           , flMessage = "probing resolved transport addresses [0.0.0.0:1, 0.0.0.0:2, 0.0.0.0:3, 0.0.0.0:4, 0.0.0.0:5]"
           }
 
@@ -82,7 +87,7 @@ main = hspec $ do
           , flLevel = "INFO"
           , flComponent = "o.e.c.c.C.CoordinatorPeerFinder"
           , flTest = "testCanUpdateClusterStateAfterStabilisation"
-          , flNodeId = Just DiscoveryNode {dnName = "node2", dnUUID = "LLo5XQAAQACCkGy3_____w"}
+          , flNode = Just DiscoveryNode {dnName = "node2", dnUUID = "LLo5XQAAQACCkGy3_____w"}
           , flMessage = "probing resolved transport addresses [0.0.0.0:1, 0.0.0.0:2, 0.0.0.0:3, 0.0.0.0:4, 0.0.0.0:5]"
           }
 
@@ -92,7 +97,7 @@ main = hspec $ do
           , flLevel = "??"
           , flComponent = "??"
           , flTest = "??"
-          , flNodeId = Nothing
+          , flNode = Nothing
           , flMessage = "actual line content"
           }
 
@@ -141,7 +146,7 @@ main = hspec $ do
                 , flLevel = "level"
                 , flComponent = "component"
                 , flTest = "context"
-                , flNodeId = Nothing
+                , flNode = Nothing
                 , flMessage = "message without continuation lines"
                 }
               , clContinuationLines = []
@@ -154,7 +159,7 @@ main = hspec $ do
                 , flLevel = "level"
                 , flComponent = "component"
                 , flTest = "context"
-                , flNodeId = Nothing
+                , flNode = Nothing
                 , flMessage = "message that continues"
                 }
               , clContinuationLines = ["... on the next line","... and on the line below too"]
@@ -183,7 +188,7 @@ main = hspec $ do
                 , flLevel = "level"
                 , flComponent = "component"
                 , flTest = "context"
-                , flNodeId = Nothing
+                , flNode = Nothing
                 , flMessage = "message without continuation lines"
                 }
               , clContinuationLines = []

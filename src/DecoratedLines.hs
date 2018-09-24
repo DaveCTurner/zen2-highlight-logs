@@ -29,6 +29,12 @@ data MessageSource
   | Unknown
   deriving (Show, Eq)
 
+nodeFromMessageSource :: MessageSource -> Maybe DiscoveryNode
+nodeFromMessageSource src = case src of
+  SourceNode n _ -> Just n
+  RunTask    n _ -> Just n
+  _              -> Nothing
+
 data DecoratedLines = DecoratedLines
   { dlMillis :: Word64
   , dlSource :: MessageSource
@@ -96,7 +102,7 @@ processLine CombinedLines{clFirstLine=FirstLine{..},..} = do
     when ("advanceTime" `B.isPrefixOf` flMessage) $ throwError AdvanceTime
     maybeM (singleNodeSource RunTask) $ tryParseRunningTaskNode flMessage
 
-  maybeM (singleNodeSource SourceNode) flNodeId
+  maybeM (singleNodeSource SourceNode) flNode
 
   throwError Unknown
 

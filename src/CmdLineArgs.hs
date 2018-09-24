@@ -1,12 +1,18 @@
 module CmdLineArgs (CmdLineArgs(..), getCmdLineArgs, parseCmdLineArgs) where
 
 import           Options.Applicative
+import qualified Data.HashSet as HS
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import qualified Data.ByteString as B
+import Data.Word8
 
 data CmdLineArgs = CmdLineArgs
   { claContinuationLines :: Bool
   , claLineNumbers       :: Bool
   , claTimestamp         :: Bool
   , claLogLevel          :: Bool
+  , claOnlyNodes         :: HS.HashSet B.ByteString
   , claLogFile           :: FilePath
   } deriving (Show, Eq)
 
@@ -16,7 +22,12 @@ cmdLineArgs = CmdLineArgs
   <*> (switch $ long "line-numbers"       <> help "Include original line numbers")
   <*> (switch $ long "original-timestamp" <> help "Include original timestamp")
   <*> (switch $ long "log-level"          <> help "Include log level")
-  <*> (strArgument $ metavar "FILE" <> help "Test output log file")
+  <*> (HS.unions . (map setFromCommaSeparatedString) <$> many (strOption
+              $ long "only-nodes"         <> help "Only show output from the listed nodes"))
+  <*> (strArgument $ metavar "FILE"       <> help "Test output log file")
+
+setFromCommaSeparatedString :: String -> HS.HashSet B.ByteString
+setFromCommaSeparatedString s = HS.fromList . B.split _comma . T.encodeUtf8 $ T.pack s
 
 cmdLineArgsInfo :: ParserInfo CmdLineArgs
 cmdLineArgsInfo = info (cmdLineArgs <**> helper)
