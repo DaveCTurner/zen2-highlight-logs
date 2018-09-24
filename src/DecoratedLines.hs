@@ -88,7 +88,12 @@ maybeM = maybe (return ())
 processLine :: CombinedLines -> ExceptT MessageSource (State DecoratorState) a
 processLine CombinedLines{clFirstLine=FirstLine{..},..} = do
 
-  when ("Tests" `B.isSuffixOf` flComponent) $ throwError TestFixture
+  when ("Tests" `B.isSuffixOf` flComponent) $ do
+    when ("before test" `B.isSuffixOf` flMessage) $ modify $ \ds -> ds
+      { dsCurrentNode = Nothing
+      , dsCurrentTime = 0
+      }
+    throwError TestFixture
 
   when ("DeterministicTaskQueue" `B.isSuffixOf` flComponent) $ do
     maybeM setTime $ tryParseAdvanceTime flMessage
