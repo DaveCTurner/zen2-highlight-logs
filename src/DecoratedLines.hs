@@ -46,15 +46,13 @@ nodeSGRs =
   ]
 
 data DecoratorState = DecoratorState
-  { dsCurrentNode  :: Maybe DiscoveryNode
-  , dsCurrentTime  :: Word64
+  { dsCurrentTime  :: Word64
   , dsSGRAllocator :: CyclicAllocator B.ByteString [SGR]
   } deriving (Show, Eq)
 
 decorateLines :: Monad m => ConduitT CombinedLines DecoratedLines m ()
 decorateLines = void $ mapAccumWhile decorateLine DecoratorState
-  { dsCurrentNode  = Nothing
-  , dsCurrentTime  = 0
+  { dsCurrentTime  = 0
   , dsSGRAllocator = newCyclicAllocator nodeSGRs
   }
 
@@ -69,7 +67,6 @@ decorateLine cl ds = case runState (runExceptT $ processLine cl) ds of
 
 singleNodeSource :: (DiscoveryNode -> [SGR] -> MessageSource) -> DiscoveryNode -> ExceptT MessageSource (State DecoratorState) a
 singleNodeSource c n = do
-  modify $ \ds -> ds { dsCurrentNode = Just n }
   sgrs <- allocateSGRs n
   throwError $ c n sgrs
 
@@ -90,8 +87,7 @@ processLine CombinedLines{clFirstLine=FirstLine{..},..} = do
 
   when ("Tests" `B.isSuffixOf` flComponent) $ do
     when ("before test" `B.isSuffixOf` flMessage) $ modify $ \ds -> ds
-      { dsCurrentNode = Nothing
-      , dsCurrentTime = 0
+      { dsCurrentTime = 0
       }
     throwError TestFixture
 
@@ -100,14 +96,7 @@ processLine CombinedLines{clFirstLine=FirstLine{..},..} = do
     when ("advanceTime" `B.isPrefixOf` flMessage) $ throwError AdvanceTime
     maybeM (singleNodeSource RunTask) $ tryParseRunningTaskNode flMessage
 
-  currentNode <- gets dsCurrentNode
-
-  case (currentNode, flNodeId) of
-    (Nothing, Just n) -> do
-      sgrs <- allocateSGRs n
-      throwError $ SourceNode n sgrs
-    (Just n,  Just m) | m == n -> singleNodeSource SourceNode n
-    _ -> return ()
+  maybeM (singleNodeSource SourceNode) flNodeId
 
   throwError Unknown
 
