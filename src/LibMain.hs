@@ -29,7 +29,7 @@ main = do
   runResourceT $ runConduit
     $  sourceFile (claLogFile cmdLineArgs)
     .| splitAndNumberLines
-    .| extractLogFromGradleOutput
+    .| extractLogFromOutput
     .| combineContinuationLines
     .| decorateLines
     .| DCC.mapM_ (liftIO . displayLine cmdLineArgs)

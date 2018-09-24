@@ -113,8 +113,14 @@ main = hspec $ do
     it "filters non-indented lines and removes the indent from the rest" $
       runIdentity (runConduit
         $  yieldMany [(1, "not a log line"), (2, "  1> log line"), (3, "also not a log line"), (4, "  1> another log line")]
-        .| extractLogFromGradleOutput
+        .| extractLogFromOutput
         .| sinkList) `shouldBe` [(2, "log line"), (4, "another log line")]
+
+    it "identifies non-indented output" $
+      runIdentity (runConduit
+        $  yieldMany [(1, "not a log line"), (2, "[2018-09-22T02:22:10,996] log line"), (3, "continuation line"), (4, "another log line")]
+        .| extractLogFromOutput
+        .| sinkList) `shouldBe` [(2, "[2018-09-22T02:22:10,996] log line"), (3, "continuation line"), (4, "another log line")]
 
   describe "CombinedLines" $ do
     it "combines first-lines with their continuation lines" $
