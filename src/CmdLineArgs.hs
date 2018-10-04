@@ -6,6 +6,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.ByteString as B
 import Data.Word8
+import Data.Word
 
 data CmdLineArgs = CmdLineArgs
   { claContinuationLines :: Bool
@@ -13,6 +14,7 @@ data CmdLineArgs = CmdLineArgs
   , claTimestamp         :: Bool
   , claLogLevel          :: Bool
   , claOnlyNodes         :: HS.HashSet B.ByteString
+  , claRelativeTime      :: Maybe Word64
   , claLogFile           :: FilePath
   } deriving (Show, Eq)
 
@@ -24,6 +26,8 @@ cmdLineArgs = CmdLineArgs
   <*> (switch $ long "log-level"          <> help "Include log level")
   <*> (HS.unions . (map setFromCommaSeparatedString) <$> many (strOption
               $ long "only-nodes"         <> help "Only show output from the listed nodes"))
+  <*> (optional $ option auto
+              $ long "relative-time"      <> help "Include times relative to the given timepoint")
   <*> (strArgument $ metavar "FILE"       <> help "Test output log file")
 
 setFromCommaSeparatedString :: String -> HS.HashSet B.ByteString

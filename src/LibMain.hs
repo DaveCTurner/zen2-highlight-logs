@@ -40,8 +40,19 @@ displayLine CmdLineArgs{..} DecoratedLines{..} = when nodeMatches $ do
   setSGR sgrs
   let lineNumber = if claLineNumbers then printf "[%5d]"  (clStart dlLines) else "" :: String
       timestamp  = if claTimestamp   then printf "[%s]"   (showBs $ flTimestamp $ clFirstLine dlLines) else "" :: String
+      relativeTimeStamp = case claRelativeTime of
+        Nothing -> "" :: String
+        Just t0 | t0 <= dlMillis -> printf "[+%9dms]"  (dlMillis - t0)
+                | otherwise      -> printf "[-%9dms]" (t0 - dlMillis)
       logLevel   = if claLogLevel    then printf "[%-5s]" (showBs $ flLevel     $ clFirstLine dlLines) else "" :: String
-  putStrLn $ printf "%s%s[%9dms][%-5s]%s[%-40s] %s" lineNumber timestamp dlMillis src logLevel (showBs $ flComponent $ clFirstLine dlLines) (showBs $ flMessage $ clFirstLine dlLines)
+  putStrLn $ printf "%s%s[%9dms]%s[%-5s]%s[%-42s] %s"
+                     lineNumber
+                         timestamp
+                                dlMillis
+                                  relativeTimeStamp
+                                        src
+                                          logLevel
+                                                   (showBs $ flComponent $ clFirstLine dlLines) (showBs $ flMessage $ clFirstLine dlLines)
   when claContinuationLines $ forM_ (clContinuationLines dlLines) $ \l -> setSGR sgrs >> putStrLn (showBs l)
   setSGR []
   where
