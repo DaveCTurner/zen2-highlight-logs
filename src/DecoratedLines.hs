@@ -46,9 +46,9 @@ nodeSGRs =
   [ [SetColor Foreground Dull  Red]
   , [SetColor Foreground Dull  Green]
   , [SetColor Foreground Dull  Yellow]
-  , [SetColor Foreground Vivid Blue]
   , [SetColor Foreground Dull  Magenta]
   , [SetColor Foreground Dull  Cyan]
+  , [SetColor Foreground Vivid Blue]
   ]
 
 data DecoratorState = DecoratorState
